@@ -1,55 +1,42 @@
-import React from 'react';
-import { Formik, Field, Form, ErrorMessage } from 'formik';
-import * as Yup from 'yup';
+import React, { useState } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { addContact } from '../redux/contactsSlice';
 
+const ContactForm = () => {
+  const [name, setName] = useState('');
+  const [number, setNumber] = useState('');
+  const contacts = useSelector(state => state.contacts.items);
+  const dispatch = useDispatch();
 
-const validationSchema = Yup.object({
-  name: Yup.string()
-    .required('Name is required')
-    .min(3, 'Name is too short')
-    .max(50, 'Name is too long'),
-  number: Yup.string()
-    .required('Number is required')
-    .matches(/\d+/, 'Invalid number format'),
-});
+  const handleSubmit = e => {
+    e.preventDefault();
+    if (contacts.some(contact => contact.name === name)) {
+      alert(`${name} is already in contacts`);
+      return;
+    }
+    dispatch(addContact({ id: Date.now().toString(), name, number }));
+    setName('');
+    setNumber('');
+  };
 
-const ContactForm = ({ addContact }) => {
   return (
-    <Formik
-      initialValues={{ name: '', number: '' }}
-      validationSchema={validationSchema}
-      onSubmit={(values, { resetForm }) => {
-        addContact(values);
-        resetForm();  
-      }}
-    >
-      <Form className="contact-form">
-              <div className="form-container">
-                  <div className="form-group">
-          <label htmlFor="name">Name:</label>
-          <Field
-            name="name"
-            type="text"
-            className="form-field"
-          />
-        
-          <ErrorMessage name="name" component="div" className="error" />
-                  </div>
-                  <div className="form-group">
-          <label htmlFor="number">Number:</label>
-          <Field
-            name="number"
-            type="text"
-            className="form-field"
-          />
-        
-          <ErrorMessage name="number" component="div" className="error" />
-</div>
-         
-          <button type="submit" className="submit-button">Add Contact</button>
-        </div>
-      </Form>
-    </Formik>
+    <form onSubmit={handleSubmit}>
+      <input
+        type="text"
+        placeholder="Name"
+        value={name}
+        onChange={e => setName(e.target.value)}
+        required
+      />
+      <input
+        type="text"
+        placeholder="Number"
+        value={number}
+        onChange={e => setNumber(e.target.value)}
+        required
+      />
+      <button type="submit">Add Contact</button>
+    </form>
   );
 };
 
